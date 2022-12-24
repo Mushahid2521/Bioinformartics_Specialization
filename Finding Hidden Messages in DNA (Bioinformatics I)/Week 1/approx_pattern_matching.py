@@ -18,6 +18,6 @@ def approx_pattern_matching(pattern, genome, d):
 
 
 
-with open('dataset_9_6.txt', 'r') as file:
+with open('dataset/dataset_9_6.txt', 'r') as file:
     lines = [s.strip() for s in file.readlines()]
     print(approx_pattern_matching(lines[0], lines[1], int(lines[2])))

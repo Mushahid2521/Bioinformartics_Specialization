@@ -14,6 +14,6 @@ def complementary_strand(dna):
     return "".join(rev_dna)
 
 
-with open('dataset_3_2.txt', 'r') as file:
+with open('dataset/dataset_3_2.txt', 'r') as file:
     dna = file.readlines()[0].strip()
     print(complementary_strand(dna))

@@ -1,3 +1,7 @@
+import random
+
+import numpy
+from numpy.random import choice
 from utils import Neighbours
 from utils import is_hamming, hamming_distance
 from itertools import product
@@ -49,11 +53,27 @@ def medianStringMotif(dna, k):
                 if min_hamming > dis:
                     min_hamming = dis
             this_string_sum += min_hamming
+        print(this_string_sum, string)
         if this_string_sum < min_distance:
             min_distance = this_string_sum
             median_string = string
 
     return median_string
+
+
+def distance_between_pattern_string(pattern, dna):
+    distance = 0
+    for text in dna:
+        this_distance = float('inf')
+        for i in range(len(text) - len(pattern) + 1):
+            this_mer = text[i:i + len(pattern)]
+            dis = hamming_distance(pattern, this_mer)
+            if dis < this_distance:
+                this_distance = dis
+
+        distance += this_distance
+
+    return distance
 
 
 def scoreMotif(motifs):
@@ -70,9 +90,9 @@ def create_profile(motifs):
     motif_profile = {'A': [], 'C': [], 'G': [], 'T': []}
     for i in range(len(motifs[0])):
         this_list = [motifs[j][i] for j in range(len(motifs))]
-        counts = dict(Counter(this_list))
+        dict_counts = dict(Counter(this_list))
         for p in motif_profile.keys():
-            motif_profile[p].append(counts.get(p, 0) / len(motifs))
+            motif_profile[p].append((dict_counts.get(p, 0) + 1) / (len(motifs) + 4))
 
     return motif_profile
 
@@ -93,6 +113,17 @@ def profile_most_probable_kmer(text, k, profile):
     return result_str
 
 
+def profile_randomly_generated_kmer(text, k, profile):
+    proba_kmers = []
+    for i in range(len(text) - k + 1):
+        this_mer = text[i:i + k]
+        proba_kmers.append(sum([profile[c][idx] for idx, c in enumerate(this_mer)]))
+
+    proba_kmers = [p / sum(proba_kmers) for p in proba_kmers]
+    idx_choice = choice([i for i in range(len(text) - k + 1)], 1, p=proba_kmers)[0]
+    return text[idx_choice: idx_choice + k]
+
+
 def greedy_motif_search(dna, k, t):
     best_motifs = [dna[i][:k] for i in range(len(dna))]
     for i in range(len(dna[0]) - k + 1):
@@ -109,11 +140,50 @@ def greedy_motif_search(dna, k, t):
     return best_motifs
 
 
-with open('dataset_159_5.txt', 'r') as f:
+def randomizedMotifSearch(dna, k, t):
+    ultimate_motif = None
+    for _ in range(1000):
+        best_motifs = []
+        for each in dna:
+            this_i = random.randint(0, len(each) - k)
+            best_motifs.append(each[this_i:this_i + k])
+        while True:
+            profile = create_profile(best_motifs)
+            motifs = [profile_most_probable_kmer(each, k, profile) for each in dna]
+            if scoreMotif(motifs) < scoreMotif(best_motifs):
+                best_motifs = motifs
+            else:
+                break
+
+            if ultimate_motif is None or scoreMotif(ultimate_motif) > scoreMotif(best_motifs):
+                ultimate_motif = best_motifs
+
+    return ultimate_motif
+
+
+def GibbsSampler(dna, k, t, N):
+    best_motifs = randomizedMotifSearch(dna, k, t)
+
+    for j in range(N):
+        i = random.randint(0, t - 1)
+        profile = create_profile([m for p, m in enumerate(best_motifs) if p != i])
+        motif_i = profile_randomly_generated_kmer(dna[i], k, profile)
+        motifs = [profile_most_probable_kmer(text, k, profile) for text in dna]
+        motifs[i] = motif_i
+
+        if scoreMotif(motifs) < scoreMotif(best_motifs):
+            best_motifs = motifs
+
+    print(scoreMotif(best_motifs))
+
+    return best_motifs
+
+
+with open('dataset/dormancy survival regulator (DosR).txt', 'r') as f:
     lines = f.readlines()
-    k, t = map(int, lines[0].split())
-    dna = list(map(str, lines[1].split()))
-    print(" ".join(greedy_motif_search(dna, k, t)))
+    # k, t, N = map(int, lines[0].strip().split())
+    dna = list(map(str, [line.strip() for line in lines]))
+    print(" ".join(GibbsSampler(dna, 12, 10, 1000)))
 
 # if __name__ == "__main__":
 # Brute Force Motif Search

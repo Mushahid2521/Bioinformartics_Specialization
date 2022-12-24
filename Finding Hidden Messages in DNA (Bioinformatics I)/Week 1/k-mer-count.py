@@ -8,7 +8,7 @@ def count(text, pattern):
     return cnt
 
 
-with open('dataset_2_6.txt', 'r') as file:
+with open('dataset/dataset_2_6.txt', 'r') as file:
     lines = file.readlines()
     print(lines[0])
     print(count(lines[0].strip(), lines[1].strip()))

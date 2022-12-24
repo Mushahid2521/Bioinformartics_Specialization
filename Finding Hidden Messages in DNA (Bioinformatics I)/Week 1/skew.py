@@ -35,6 +35,6 @@ def skew(genome):
 #     genome = file.readlines()[0]
 #     print(" ".join(map(str, skew(genome))))
 
-with open('dataset_9_3.txt', 'r') as file:
+with open('dataset/dataset_9_3.txt', 'r') as file:
     lines = file.readlines()
     print(hamming_distance(lines[0].strip(), lines[1].strip()))
