@@ -8,6 +8,14 @@ from itertools import product
 from collections import Counter
 
 
+def consensus_string(motifs):
+    res_string = ""
+    for j in range(len(motifs[0])):
+        chars = [motifs[i][j] for i in range(len(motifs))]
+        res_string += max(chars, key=chars.count)
+    return res_string
+
+
 def motif_search_brute_force(dna, k, d):
     # k = 3
     # d = 1
@@ -53,7 +61,6 @@ def medianStringMotif(dna, k):
                 if min_hamming > dis:
                     min_hamming = dis
             this_string_sum += min_hamming
-        print(this_string_sum, string)
         if this_string_sum < min_distance:
             min_distance = this_string_sum
             median_string = string
@@ -142,6 +149,7 @@ def greedy_motif_search(dna, k, t):
 
 def randomizedMotifSearch(dna, k, t):
     ultimate_motif = None
+    score = 0
     for _ in range(1000):
         best_motifs = []
         for each in dna:
@@ -157,13 +165,14 @@ def randomizedMotifSearch(dna, k, t):
 
             if ultimate_motif is None or scoreMotif(ultimate_motif) > scoreMotif(best_motifs):
                 ultimate_motif = best_motifs
-
+                score = scoreMotif(ultimate_motif)
+    print(score)
     return ultimate_motif
 
 
 def GibbsSampler(dna, k, t, N):
     best_motifs = randomizedMotifSearch(dna, k, t)
-
+    score = 0
     for j in range(N):
         i = random.randint(0, t - 1)
         profile = create_profile([m for p, m in enumerate(best_motifs) if p != i])
@@ -173,45 +182,16 @@ def GibbsSampler(dna, k, t, N):
 
         if scoreMotif(motifs) < scoreMotif(best_motifs):
             best_motifs = motifs
+            score = scoreMotif(best_motifs)
 
-    print(scoreMotif(best_motifs))
-
+    print(score)
     return best_motifs
 
 
-with open('dataset/dormancy survival regulator (DosR).txt', 'r') as f:
-    lines = f.readlines()
-    # k, t, N = map(int, lines[0].strip().split())
-    dna = list(map(str, [line.strip() for line in lines]))
-    print(" ".join(GibbsSampler(dna, 12, 10, 1000)))
-
-# if __name__ == "__main__":
-# Brute Force Motif Search
-# with open('dataset_156_8.txt', 'r') as f:
-#     lines = f.readlines()
-#     k, d = map(int, lines[0].split())
-#     input_dna = lines[1].split()
-#     print(" ".join(motif_search_brute_force(input_dna, k, d)))
-
-# Consensus string search
-# with open('dataset_158_9.txt', 'r') as f:
-#     lines = f.readlines()
-#     k = int(lines[0])
-#     input_dna = []
-#     for l in range(1, len(lines)):
-#         input_dna.append(lines[l].strip())
-#
-#     print(medianStringMotif(input_dna, k))
-
-# Profile Most Probable k mer
-# with open('dataset_159_3.txt', 'r') as f:
-#     lines = f.readlines()
-#     lines = [line.strip() for line in lines]
-#     text = str(lines[0])
-#     k = int(lines[1])
-#     profile = {'A': list(map(float, lines[2].split())),
-#                'C': list(map(float, lines[3].split())),
-#                'G': list(map(float, lines[4].split())),
-#                'T': list(map(float, lines[5].split()))}
-#
-#     print(profile_most_probable_kmer(text, k, profile))
+# MTB - Mycobacterium Tuberculosis, DosR - Dormancy Survival Regulator transcription factor binding site
+with open('dataset/upstream250_MTB_genes.txt', 'r') as f:
+    dna = [line.strip() for idx, line in enumerate(f.readlines()) if idx % 2 != 0]
+    # # print("Median string with K= 12\n", consensus_string(medianStringMotif(dna, 12)))
+    # print("Randomized Motif Search, k=12", consensus_string(randomizedMotifSearch(dna, 12, len(dna))))
+    # print("Gibbs Sampler, k=12", consensus_string(GibbsSampler(dna, 12, len(dna), 1000)))
+    # print("Randomized Motif Search, k=20", consensus_string(randomizedMotifSearch(dna, 20, len(dna))))

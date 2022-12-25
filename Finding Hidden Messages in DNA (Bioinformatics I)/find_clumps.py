@@ -34,7 +34,7 @@ def findClumps(dna, K, L, t):
     return patterns
 
 
-with open('E_coli.txt', 'r') as file:
+with open('dataset/E_coli.txt', 'r') as file:
     lines = file.readlines()
     dna = lines[0].strip()
     K, L, t = map(int, lines[1].strip().split(" "))
